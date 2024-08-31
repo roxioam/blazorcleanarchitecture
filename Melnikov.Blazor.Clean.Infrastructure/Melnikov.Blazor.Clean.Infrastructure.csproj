@@ -1,0 +1,14 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net8.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\Melnikov.Blazor.Clean.Application\Melnikov.Blazor.Clean.Application.csproj" />
+      <ProjectReference Include="..\Melnikov.Blazor.Clean.Domain\Melnikov.Blazor.Clean.Domain.csproj" />
+    </ItemGroup>
+
+</Project>
