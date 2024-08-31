@@ -1,35 +1,60 @@
-using Melnikov.Blazor.Clean.Web.UI.Components;
+using Melnikov.Blazor.Clean.Application;
+using Melnikov.Blazor.Clean.Infrastructure;
+using Melnikov.Blazor.Clean.Infrastructure.Persistence;
+using Serilog;
 
 namespace Melnikov.Blazor.Clean.Web.UI;
 
 public class Program
 {
-    public static void Main(string[] args)
+    public static async Task Main(string[] args)
     {
-        var builder = WebApplication.CreateBuilder(args);
+        Log.Logger = new LoggerConfiguration()
+            .Enrich.FromLogContext()
+            .WriteTo.Console()
+            .CreateBootstrapLogger();
 
-        // Add services to the container.
-        builder.Services.AddRazorComponents()
-            .AddInteractiveServerComponents();
-
-        var app = builder.Build();
-
-        // Configure the HTTP request pipeline.
-        if (!app.Environment.IsDevelopment())
+        try
         {
-            app.UseExceptionHandler("/Error");
-            // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
-            app.UseHsts();
+            Log.Logger.Information("Starting web host...");
+
+            var builder = WebApplication.CreateBuilder(args);
+
+            builder.Host.UseSerilog((context, provider, configuration) =>
+                configuration.ReadFrom.Configuration(context.Configuration).ReadFrom.Services(provider));
+
+            builder.WebHost.UseStaticWebAssets();
+
+            builder.Services.AddApplication(builder.Configuration)
+                .AddInfrastructure(builder.Configuration)
+                .AddServerUI(builder.Configuration);
+
+            var app = builder.Build();
+
+            app.ConfigureServer(builder.Configuration);
+
+            if (app.Environment.IsDevelopment())
+            {
+                // Initialise and seed database
+                using (var scope = app.Services.CreateScope())
+                {
+                    var initializer = scope.ServiceProvider.GetRequiredService<ApplicationDbContextInitializer>();
+                    await initializer.InitialiseAsync();
+                    await initializer.SeedAsync();
+                }
+            }
+
+            await app.RunAsync();
         }
-
-        app.UseHttpsRedirection();
-
-        app.UseStaticFiles();
-        app.UseAntiforgery();
-
-        app.MapRazorComponents<App>()
-            .AddInteractiveServerRenderMode();
-
-        app.Run();
+        catch (Exception e)
+        {
+            Log.Logger.Fatal(e, "Fatal exception has been thrown during app working.");
+            throw;
+        }
+        finally
+        {
+            Log.Logger.Information("Web host has been stopped.");
+            await Log.CloseAndFlushAsync();
+        }
     }
 }
