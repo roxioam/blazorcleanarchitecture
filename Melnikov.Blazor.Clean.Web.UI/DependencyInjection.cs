@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.FileProviders;
+using Radzen;
 
 namespace Melnikov.Blazor.Clean.Web.UI;
 
@@ -41,6 +42,8 @@ public static class DependencyInjection
             options.ForwardedHeaders =
                 ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
         });
+        
+        services.AddRadzenComponents();
 
         return services;
     }
