@@ -12,4 +12,8 @@
       <ProjectReference Include="..\Melnikov.Blazor.Clean.Infrastructure\Melnikov.Blazor.Clean.Infrastructure.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <PackageReference Include="Serilog" Version="4.0.1" />
+    </ItemGroup>
+
 </Project>
